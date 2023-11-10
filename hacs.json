@@ -1,5 +1,5 @@
 {
-  "name": "Shopping List",
-  "domains": ["shopping_list"],
-  "render_readme": true,
+  "name": "Bring Shopping List",
+  "domains": ["bring"],
+  "render_readme": true
 }

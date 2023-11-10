@@ -8,12 +8,10 @@ A custom implementation of Home Assistant's Shopping List that synchronises with
 
 ### HACS
 
-Add the repository url to your custom repositories in HACS: https://github.com/vlebourl/shopping_list
-and install `Shopping List`.
+Add the repository url to your custom repositories in HACS: https://github.com/sh00t2kill/HA-Bring-ToDo-List
+and install `Bring Shopping List`.
 
-### Manual
 
-Download the [zip](https://github.com/vlebourl/custom_shopping_list/archive/main.zip) and extract it. Copy the folder `shopping_list` to your `custom_components` folder.
 
 ## Usage
 
