@@ -1,0 +1,26 @@
+add_item:
+  description: Adds an item to the shopping list.
+  fields:
+    name:
+      description: The name of the item to add.
+      example: Beer
+complete_item:
+  description: Marks an item as completed in the shopping list. It does not remove the item.
+  fields:
+    name:
+      description: The name of the item to mark as completed.
+      example: Beer
+bring_sync:
+  description: Syncs with Bring Shopping List.
+bring_select_list:
+  description: Select which list Bring should synchronize with.
+  fields:
+    name:
+      description: The name of the Bring list.
+      example: Shopping
+remove_completed_items:
+  description: Removes completed items.
+  fields:
+    name:
+      description: Removes completed items.
+      
