@@ -39,6 +39,8 @@ _LOGGER = logging.getLogger(__name__)
 class AuthentificationFailed(Exception):
     pass
 
+class BringApiException(Exception):
+    pass
 
 class BringApi:
     def __init__(
@@ -76,7 +78,7 @@ class BringApi:
         if response.status in [200, 204]:
             return
         if response.status == 404:
-            raise Exception(response.url, response.reason)
+            raise BringApiException(response.url, response.reason)
 
         try:
             result = await response.json(content_type=None)
@@ -179,18 +181,11 @@ class BringApi:
     async def set_list_by_uuid(self, uuid):
         self.bringListUUID = uuid
 
-    # return list of items from current list as well as recent items - translated if requested
+    # return list of items from current list as well as recent items
     async def get_items(self, locale=None) -> dict:
         items = await self.__get(
             BRING_URL, f"bringlists/{self.bringListUUID}", headers=self.headers
         )
-
-        #if locale:
-        #    transl = await self.load_translations(locale)
-        #    for item in items["purchase"]:
-        #        item["name"] = transl.get(item["name"]) or item["name"]
-        #    for item in items["recently"]:
-        #        item["name"] = transl.get(item["name"]) or item["name"]
         return items
 
     async def get_current_items(self) -> dict:

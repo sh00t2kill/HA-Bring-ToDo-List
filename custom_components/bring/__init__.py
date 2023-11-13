@@ -20,7 +20,7 @@ from homeassistant.helpers.update_coordinator import (DataUpdateCoordinator,
                                                       UpdateFailed)
 
 from .const import DOMAIN, PLATFORMS
-from .bring import BringApi
+from .bring import BringApi, BringApiException
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -43,7 +43,6 @@ async def async_setup_entry(hass: core.HomeAssistant, entry: ConfigEntry)-> bool
         _LOGGER.debug(bring_list)
         list_name = bring_list.get("name")
         list_uuid = bring_list.get("listUuid")
-        #coordinator = BringCoordinator(hass, bring, bring_list)
         lists.append({"name": list_name, "uuid": list_uuid})
 
     conf = {"username": username,
@@ -82,15 +81,18 @@ class BringCoordinator(DataUpdateCoordinator):
         products = {}
         for bring_list in bring_lists:
             _LOGGER.debug(f"Selecting list {bring_list['name']}::{bring_list['uuid']}")
-            #await self.bring_api.select_list(bring_list["name"])
             await self.bring_api.set_list(bring_list["name"], bring_list["uuid"])
-            #bring_list_products = await self.bring_api.load_products()
-            #bring_list_products = await self.bring_api.get_items_detail()
-            #bring_list_products = await self.bring_api.get_current_items()
-            bring_list_products = await self.bring_api.get_items()
-            _LOGGER.debug(f"Found {bring_list_products} for  list {bring_list['name']}::{bring_list['uuid']}")
-
-            products[bring_list["uuid"]] = bring_list_products
+            try:
+                bring_list_products = await self.bring_api.get_items()
+                _LOGGER.debug(f"Found {bring_list_products} for  list {bring_list['name']}::{bring_list['uuid']}")
+                products[bring_list["uuid"]] = bring_list_products
+            except BringApiException as e:
+                ####################################################################################
+                # This most likely means the list has been deleted in the Bring! app.              #
+                # Rather than bring the whole integration to its knees, just skip this lst.        #
+                # If it has truly been removed, the list will be removed from HA at next restart.  #
+                ####################################################################################
+                _LOGGER.info(f"Bring API Exception {e.message}. Likely list no longed exists in Bring!")
+                _LOGGER.info("Failed to fetch data from Bring! API for list %s", bring_list["name"])
         _LOGGER.debug(f"Products: {products}")
         return products
-
