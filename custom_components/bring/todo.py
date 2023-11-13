@@ -88,8 +88,6 @@ class BringTodoList(CoordinatorEntity, TodoListEntity):
         return len(all_items["purchase"])
 
     async def async_create_todo_item(self, item):
-        #await self.coordinator.bring_api.purchase_item(item)
-        #await item.purchase_item()
         _LOGGER.debug(f"Creating new item {item.summary}")
         await self.coordinator.bring_api.set_list_by_uuid(self.uuid)
         await self.coordinator.bring_api.purchase_item(item.summary)
@@ -104,22 +102,23 @@ class BringTodoList(CoordinatorEntity, TodoListEntity):
         for uid in uids:
             position = self._uuids.index(uid)
             item_name = self._processed_items[position]
-            _LOGGER.debug(f"Revming {item_name}")
+            _LOGGER.debug(f"Removing {item_name}")
             await self.coordinator.bring_api.set_list_by_uuid(self.uuid)
             await self.coordinator.bring_api.remove_item(item_name)
             await self.coordinator.async_request_refresh()
             del self._uuids[position]
             del self._processed_items[position]
-            bring_item = BringTodoItem(self.coordinator.bring_api, item_name)
-            self._items.remove(bring_item)
-        #await self.coordinator.bring_api.delete_item(item)
+            search_bring_item = BringTodoItem(self.coordinator.bring_api, item_name)
+            if search_bring_item not in self._items:
+                #Its been marked as completed, so lets update the status
+                search_bring_item.set_status(TodoItemStatus.COMPLETED)
+            self._items.remove(search_bring_item)
         await self.coordinator.async_request_refresh()
 
     async def async_update_todo_item(self, item: TodoItem) -> None:
         _LOGGER.debug(f"Updating item {item.summary}")
         await self.coordinator.bring_api.set_list_by_uuid(self.uuid)
         search_bring_item = BringTodoItem(self.coordinator.bring_api, item.summary)
-        #bring_item = self._items[search_bring_item]
         item_key = self._items.index(search_bring_item)
         bring_item = self._items[item_key]
         await bring_item.update_status()
