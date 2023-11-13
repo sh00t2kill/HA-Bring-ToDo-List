@@ -1,7 +1,7 @@
 {
-  "domain": "shopping_list",
-  "name": "Shopping List",
-  "documentation": "https://www.home-assistant.io/integrations/shopping_list",
+  "domain": "bring",
+  "name": "Bring Todo List",
+  "documentation": "https://github.com/sh00t2kill/HA-Bring-ToDo-List",
   "dependencies": ["http"],
   "codeowners": [],
   "config_flow": true,

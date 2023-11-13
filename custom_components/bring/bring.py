@@ -2,6 +2,8 @@
 # coding: utf8
 from __future__ import annotations
 
+import logging
+
 from json import JSONDecodeError
 from types import TracebackType
 from typing import Any, Dict, List, Optional, Type, Union
@@ -32,6 +34,7 @@ Made with ❤ and no ☕ in Germany
 
 BRING_URL = "https://api.getbring.com/rest/"
 
+_LOGGER = logging.getLogger(__name__)
 
 class AuthentificationFailed(Exception):
     pass
@@ -159,6 +162,7 @@ class BringApi:
             BRING_URL, f"bringusers/{self.bringUUID}/lists", headers=self.headers
         )
         self.lists = lists.get("lists")
+        return self.lists
 
     async def select_list(self, name):
         await self.get_lists()
@@ -170,22 +174,44 @@ class BringApi:
         self.bringListUUID = selected.get("listUuid")
         self.selected_list = selected.get("name")
 
+    async def set_list(self, name, uuid):
+        self.bringListUUID = uuid
+        self.selected_list = name
+
+    async def set_list_by_uuid(self, uuid):
+        self.bringListUUID = uuid
+
     # return list of items from current list as well as recent items - translated if requested
     async def get_items(self, locale=None) -> dict:
         items = await self.__get(
             BRING_URL, f"bringlists/{self.bringListUUID}", headers=self.headers
         )
 
-        if locale:
-            transl = await self.load_translations(locale)
-            for item in items["purchase"]:
-                item["name"] = transl.get(item["name"]) or item["name"]
-            for item in items["recently"]:
-                item["name"] = transl.get(item["name"]) or item["name"]
+        #if locale:
+        #    transl = await self.load_translations(locale)
+        #    for item in items["purchase"]:
+        #        item["name"] = transl.get(item["name"]) or item["name"]
+        #    for item in items["recently"]:
+        #        item["name"] = transl.get(item["name"]) or item["name"]
         return items
+
+    async def get_current_items(self) -> dict:
+        items = await self.__get(
+            BRING_URL, f"bringlists/{self.bringListUUID}/details", headers=self.headers
+        )
+        _LOGGER.debug(items)
+        return items["purchase"]
+
+    async def get_recent_items(self) -> dict:
+        items = await self.__get(
+            BRING_URL, f"bringlists/{self.bringListUUID}/details", headers=self.headers
+        )
+        _LOGGER.debug(items)
+        return items["recently"]
 
     # return the details: Name, Image, UUID
     async def get_items_detail(self) -> dict:
+        _LOGGER.debug(f"Getting items for {self.bringListUUID}")
         items = await self.__get(
             BRING_URL,
             f"bringlists/{self.bringListUUID}/details",

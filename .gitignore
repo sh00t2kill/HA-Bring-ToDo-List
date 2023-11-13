@@ -1,5 +1,5 @@
 .vscode/
-custom_components/shopping_list/__pycache__/
-custom_components/shopping_list/scratch.py
+custom_components/bring/__pycache__/
+custom_components/bring/scratch.py
 venv/
 Config/
