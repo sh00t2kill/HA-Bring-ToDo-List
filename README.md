@@ -1,6 +1,6 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
 
-# Custom Shopping List with Bring integration.
+# Home Assistant Todo List with Bring integration.
 
 A custom implementation of Home Assistant's new ToDo List that synchronises with Bring Shopping List (https://getbring.com/#!/app).
 The original component overrode the core shopping_list integration --- this uses the new Todo list functionality, creating a todo list for each shopping list created in Bring!
