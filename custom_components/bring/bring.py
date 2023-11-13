@@ -139,14 +139,12 @@ class BringApi:
                 "X-BRING-CLIENT": "android",
                 "X-BRING-USER-UUID": self.bringUUID,
                 "X-BRING-VERSION": "303070050",
-                "X-BRING-COUNTRY": "de",
             }
             self.addheaders = {
                 "X-BRING-API-KEY": "cof4Nc6D8saplXjE3h3HXqHH8m7VU2i1Gs0g85Sp",
                 "X-BRING-CLIENT": "android",
                 "X-BRING-USER-UUID": self.bringUUID,
                 "X-BRING-VERSION": "303070050",
-                "X-BRING-COUNTRY": "de",
                 "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
             }
             self.logged = True
