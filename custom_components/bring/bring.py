@@ -228,13 +228,16 @@ class BringApi:
             return item
         for german, local in self._translations.items():
             if item == local:
-                _LOGGER.debug(f"Found matching translation if {german} for {item}")
+                _LOGGER.debug(f"Found matching translation of {german} for {item}")
                 return german
+        return item
 
 
     # add a new item to the current list with a given specification = additional description
     async def purchase_item(self, item, specification: str = None):
+        _LOGGER.debug(f"Original item {item}")
         item = await self.reverse_translate(item)
+        _LOGGER.debug(f"Translated item {item}")
         params = {"purchase": item}
         if specification:
             params["specification"] = specification

@@ -39,8 +39,6 @@ class BringTodoList(CoordinatorEntity, TodoListEntity):
         }
         self._items = []
         self._processed_items = []
-        #self.todo_items = None
-        self._uuids = []
 
     @property
     def unique_id(self):
@@ -75,7 +73,6 @@ class BringTodoList(CoordinatorEntity, TodoListEntity):
                 _LOGGER.debug(bring_item)
                 self._items.append(bring_item)
                 self._processed_items.append(item["name"])
-                self._uuids.append(bring_item.get_uid())
             elif item['name'] in self._processed_items and bring_item not in self._items:
                 _LOGGER.debug("Existing item found, changing status to NEEDS_ACTION")
                 bring_item.set_status(TodoItemStatus.COMPLETED)
@@ -88,7 +85,6 @@ class BringTodoList(CoordinatorEntity, TodoListEntity):
             if item['name'] not in self._processed_items:
                 self._items.append(bring_item)
                 self._processed_items.append(item["name"])
-                self._uuids.append(bring_item.get_uid())
             elif item['name'] in self._processed_items and bring_item not in self._items:
                 _LOGGER.debug("Existing item found, changing status to COMPLETED")
                 bring_item.set_status(TodoItemStatus.NEEDS_ACTION)
@@ -114,8 +110,6 @@ class BringTodoList(CoordinatorEntity, TodoListEntity):
             if existing_ha_item not in bring_todo_items:
                 _LOGGER.debug(f"Removing {existing_ha_item.get_summary()} from list")
                 self._items.remove(existing_ha_item)
-                uid = existing_ha_item.get_uid()
-                self._uuids.remove(uid)
                 self._processed_items.remove(existing_ha_item.get_summary())
 
     async def async_create_todo_item(self, item):
@@ -125,19 +119,20 @@ class BringTodoList(CoordinatorEntity, TodoListEntity):
         bring_item = BringTodoItem(self.coordinator.bring_api, item.summary, self.uuid)
         self._items.append(bring_item)
         self._processed_items.append(item.summary)
-        item_uid = bring_item.get_uid()
-        self._uuids.append(item_uid)
         await self.coordinator.async_request_refresh()
 
     # Note: This removes it from the API, and lets the List state remove it from the lst
     async def async_delete_todo_items(self, uids: list[str]) -> None:
         for uid in uids:
-            position = self._uuids.index(uid)
-            item_name = self._processed_items[position]
-            _LOGGER.debug(f"Removing {item_name}")
+            for item in self._items:
+                item_uid = item.get_uid()
+                if item_uid == uid:
+                    item_name = item.get_summary()
+                    break
             await self.coordinator.bring_api.set_list_by_uuid(self.uuid)
             await self.coordinator.bring_api.remove_item(item_name)
             await self.coordinator.async_request_refresh()
+            self.remove_outdated_list_items()
 
     async def async_update_todo_item(self, item: TodoItem) -> None:
         _LOGGER.debug(f"Updating item {item.summary}")
@@ -150,6 +145,7 @@ class BringTodoList(CoordinatorEntity, TodoListEntity):
         bring_item = self._items[item_key]
         await bring_item.update_status()
         await self.coordinator.async_request_refresh()
+
 
 
 class BringTodoItem(TodoItem):
