@@ -154,9 +154,6 @@ class BringTodoList(CoordinatorEntity, TodoListEntity):
 
 class BringTodoItem(TodoItem):
     def __init__(self, api, summary, list_uuid):
-    #def __init__(self, name)
-        #self.uid = f"bring_item_{summary.replace(' ', '_')}"
-        #self.uid = uuid.uuid4()
         self.summary = summary
         self.status = TodoItemStatus.NEEDS_ACTION
         self.bring_api = api

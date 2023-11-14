@@ -19,7 +19,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import (DataUpdateCoordinator,
                                                       UpdateFailed)
 
-from .const import DOMAIN, PLATFORMS
+from .const import CONF_LOCALE, DOMAIN, PLATFORMS
 from .bring import BringApi, BringApiException
 
 _LOGGER = logging.getLogger(__name__)
@@ -32,6 +32,7 @@ async def async_setup_entry(hass: core.HomeAssistant, entry: ConfigEntry)-> bool
 
     username = entry.data.get(CONF_USERNAME)
     password = entry.data.get(CONF_PASSWORD)
+    locale = entry.data.get(CONF_LOCALE)
     bring = BringApi(username, password)
     _LOGGER.debug(bring)
     await bring.login()
@@ -45,8 +46,9 @@ async def async_setup_entry(hass: core.HomeAssistant, entry: ConfigEntry)-> bool
         list_uuid = bring_list.get("listUuid")
         lists.append({"name": list_name, "uuid": list_uuid})
 
-    conf = {"username": username,
-            "password": password,
+    conf = {#"username": username,
+            #"password": password,
+            "locale": locale,
             "lists": lists}
 
     coordinator = BringCoordinator(hass, conf, bring)
@@ -78,12 +80,14 @@ class BringCoordinator(DataUpdateCoordinator):
         so entities can quickly look up their data.
         """
         bring_lists = self.conf["lists"]
+        locale = self.conf["locale"]
+        _LOGGER.debug(f"Translating to locale {locale}")
         products = {}
         for bring_list in bring_lists:
             _LOGGER.debug(f"Selecting list {bring_list['name']}::{bring_list['uuid']}")
             await self.bring_api.set_list(bring_list["name"], bring_list["uuid"])
             try:
-                bring_list_products = await self.bring_api.get_items()
+                bring_list_products = await self.bring_api.get_items(locale)
                 _LOGGER.debug(f"Found {bring_list_products} for  list {bring_list['name']}::{bring_list['uuid']}")
                 products[bring_list["uuid"]] = bring_list_products
             except BringApiException as e:

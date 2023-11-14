@@ -164,6 +164,7 @@ class BringApi:
         self.lists = lists.get("lists")
         return self.lists
 
+
     async def select_list(self, name):
         await self.get_lists()
         selected = next(
@@ -173,6 +174,7 @@ class BringApi:
             raise ValueError(f"List {name} does not exist")
         self.bringListUUID = selected.get("listUuid")
         self.selected_list = selected.get("name")
+
 
     async def set_list(self, name, uuid):
         self.bringListUUID = uuid
@@ -186,6 +188,14 @@ class BringApi:
         items = await self.__get(
             BRING_URL, f"bringlists/{self.bringListUUID}", headers=self.headers
         )
+
+        if locale:
+            _LOGGER.debug(f"Translating items to {locale}")
+            transl = await self.load_translations(locale)
+            for item in items["purchase"]:
+                item["name"] = transl.get(item["name"]) or item["name"]
+            for item in items["recently"]:
+                item["name"] = transl.get(item["name"]) or item["name"]
         return items
 
     async def get_current_items(self) -> dict:
@@ -240,6 +250,7 @@ class BringApi:
             params=params,
             headers=self.addheaders,
         )
+
 
     # search for an item in the list
     # NOT WORKING!
