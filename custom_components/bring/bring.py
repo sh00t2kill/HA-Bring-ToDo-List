@@ -182,7 +182,7 @@ class BringApi:
         self.bringListUUID = uuid
 
     # return list of items from current list as well as recent items
-    async def get_items(self, locale=None) -> dict:
+    async def get_items(self, =None) -> dict:
         items = await self.__get(
             BRING_URL, f"bringlists/{self.bringListUUID}", headers=self.headers
         )

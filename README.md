@@ -15,4 +15,4 @@ and install `Bring Todo List`.
 
 ## Usage
 
-To use it, add the shopping list integration from the integration page and fill in your credentials.
+Add the `Bring Todo List` integration from the HA Integrations page, and enter your credentials.

@@ -66,7 +66,6 @@ class BringTodoList(CoordinatorEntity, TodoListEntity):
     @property
     def state(self):
         _LOGGER.debug(f"Getting state for {self.name}")
-        #self._items = []
         all_items = self.coordinator.data[self.uuid]
         for item in all_items["purchase"]:
             bring_item = BringTodoItem(self.coordinator.bring_api, item["name"], self.uuid)
@@ -87,7 +86,6 @@ class BringTodoList(CoordinatorEntity, TodoListEntity):
             bring_item.set_status(TodoItemStatus.COMPLETED)
             # These are completed items
             if item['name'] not in self._processed_items:
-                #bring_item.set_status(TodoItemStatus.COMPLETED)
                 self._items.append(bring_item)
                 self._processed_items.append(item["name"])
                 self._uuids.append(bring_item.get_uid())
@@ -98,7 +96,12 @@ class BringTodoList(CoordinatorEntity, TodoListEntity):
                 self._items[item_key].set_status(TodoItemStatus.COMPLETED)
 
         ## Now lets go the other way, remove HA list items that arent in Bring
+        self.remove_outdated_list_items()
+        return len(all_items["purchase"])
+
+    def remove_outdated_list_items(self):
         bring_todo_items = []
+        all_items = self.coordinator.data[self.uuid]
         for api_item in all_items["purchase"]:
             bring_todo_items.append(BringTodoItem(self.coordinator.bring_api, api_item["name"], self.uuid))
         for api_item in all_items["recently"]:
@@ -114,7 +117,6 @@ class BringTodoList(CoordinatorEntity, TodoListEntity):
                 uid = existing_ha_item.get_uid()
                 self._uuids.remove(uid)
                 self._processed_items.remove(existing_ha_item.get_summary())
-        return len(all_items["purchase"])
 
     async def async_create_todo_item(self, item):
         _LOGGER.debug(f"Creating new item {item.summary}")

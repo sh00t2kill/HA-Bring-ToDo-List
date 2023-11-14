@@ -30,7 +30,7 @@ class LinktapFlowHandler(config_entries.ConfigFlow):
         new_user_input = {
             vol.Required(CONF_USERNAME): str,
             vol.Required(CONF_PASSWORD): str,
-            vol.Required(CONF_LOCALE, default=DEFAULT_LOCALE): str,
+            #vol.Required(CONF_LOCALE, default=DEFAULT_LOCALE): str,
         }
 
         schema = vol.Schema(new_user_input)
