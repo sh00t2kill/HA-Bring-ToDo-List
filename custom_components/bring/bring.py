@@ -222,8 +222,19 @@ class BringApi:
         )
         return items
 
+    async def reverse_translate(self, item):
+        if self._translations is None:
+            _LOGGER.debug(f"Translations not in use -- returning {item}")
+            return item
+        for german, local in self._translations.items():
+            if item == local:
+                _LOGGER.debug(f"Found matching translation if {german} for {item}")
+                return german
+
+
     # add a new item to the current list with a given specification = additional description
     async def purchase_item(self, item, specification: str = None):
+        item = await self.reverse_translate(item)
         params = {"purchase": item}
         if specification:
             params["specification"] = specification
@@ -235,6 +246,7 @@ class BringApi:
 
     # add/move something to the recent items
     async def recent_item(self, item):
+        item = await self.reverse_translate(item)
         params = {"recently": item}
         await self.__put(
             f"bringlists/{self.bringListUUID}",
@@ -244,6 +256,7 @@ class BringApi:
 
     # remove an item completely (from recent and purchase)
     async def remove_item(self, item):
+        item = await self.reverse_translate(item)
         params = {"remove": item}
         await self.__put(
             f"bringlists/{self.bringListUUID}",
