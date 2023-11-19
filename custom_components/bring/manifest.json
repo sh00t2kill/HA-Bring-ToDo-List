@@ -7,5 +7,5 @@
   "documentation": "https://github.com/sh00t2kill/HA-Bring-ToDo-List",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/sh00t2kill/HA-Bring-ToDo-List/issues",  
-  "quality_scale": "internal",
+  "quality_scale": "internal"
 }
