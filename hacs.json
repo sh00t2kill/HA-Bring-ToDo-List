@@ -1,5 +1,4 @@
 {
   "name": "Bring Todo List",
-  "domains": ["bring"],
-  "render_readme": true
+  "homeassistant": "2023.11.0"
 }
