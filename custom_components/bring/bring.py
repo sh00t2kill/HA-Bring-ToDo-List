@@ -248,9 +248,11 @@ class BringApi:
         )
 
     # add/move something to the recent items
-    async def recent_item(self, item):
+    async def recent_item(self, item, specification: str = None):
         item = await self.reverse_translate(item)
         params = {"recently": item}
+        if specification:
+            params["specification"] = specification
         await self.__put(
             f"bringlists/{self.bringListUUID}",
             params=params,
@@ -258,9 +260,11 @@ class BringApi:
         )
 
     # remove an item completely (from recent and purchase)
-    async def remove_item(self, item):
+    async def remove_item(self, item, specification: str = None):
         item = await self.reverse_translate(item)
         params = {"remove": item}
+        if specification:
+            params["specification"] = specification
         await self.__put(
             f"bringlists/{self.bringListUUID}",
             params=params,

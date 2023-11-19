@@ -67,6 +67,8 @@ class BringTodoList(CoordinatorEntity, TodoListEntity):
         all_items = self.coordinator.data[self.uuid]
         for item in all_items["purchase"]:
             bring_item = BringTodoItem(self.coordinator.bring_api, item["name"], self.uuid)
+            if item["specification"] and item["specification"] != "":
+                bring_item.set_specification(item["specification"])
             #These are active items -- lets do our thing
             if item['name'] not in self._processed_items:
                 _LOGGER.debug(f"Found new item {item['name']}")
@@ -81,6 +83,8 @@ class BringTodoList(CoordinatorEntity, TodoListEntity):
         for item in all_items["recently"]:
             bring_item = BringTodoItem(self.coordinator.bring_api, item["name"], self.uuid)
             bring_item.set_status(TodoItemStatus.COMPLETED)
+            if item["specification"] and item["specification"] != "":
+                bring_item.set_specification(item["specification"])
             # These are completed items
             if item['name'] not in self._processed_items:
                 self._items.append(bring_item)
@@ -95,30 +99,49 @@ class BringTodoList(CoordinatorEntity, TodoListEntity):
         self.remove_outdated_list_items()
         return len(all_items["purchase"])
 
+    async def async_remove_outdated_list_items(self):
+        #await self.remove_outdated_list_items()
+        await asyncio.to_thread(self.remove_outdated_list_items)
+
     def remove_outdated_list_items(self):
         bring_todo_items = []
         all_items = self.coordinator.data[self.uuid]
         for api_item in all_items["purchase"]:
-            bring_todo_items.append(BringTodoItem(self.coordinator.bring_api, api_item["name"], self.uuid))
+            todo_item = BringTodoItem(self.coordinator.bring_api, api_item["name"], self.uuid)
+            if api_item["specification"] and api_item["specification"] != "":
+                todo_item.set_specification(api_item["specification"])
+            bring_todo_items.append(todo_item)
         for api_item in all_items["recently"]:
             todo_item = BringTodoItem(self.coordinator.bring_api, api_item["name"], self.uuid)
+            if api_item["specification"] and api_item["specification"] != "":
+                todo_item.set_specification(api_item["specification"])
             todo_item.set_status(TodoItemStatus.COMPLETED)
             bring_todo_items.append(todo_item)
 
         for existing_ha_item in self._items:
-            _LOGGER.debug(f"Checking if {existing_ha_item} no longer exists in Bring!")
+            #_LOGGER.debug(f"Checking if {existing_ha_item} no longer exists in Bring!")
+            _LOGGER.debug(f"Checking if {existing_ha_item.get_summary()} {existing_ha_item.get_specification()} no longer exists in Bring!")
             if existing_ha_item not in bring_todo_items:
                 _LOGGER.debug(f"Removing {existing_ha_item.get_summary()} from list")
                 self._items.remove(existing_ha_item)
                 self._processed_items.remove(existing_ha_item.get_summary())
 
     async def async_create_todo_item(self, item):
-        _LOGGER.debug(f"Creating new item {item.summary}")
+        #_LOGGER.debug(f"Creating new item {item.summary}")
         await self.coordinator.bring_api.set_list_by_uuid(self.uuid)
-        await self.coordinator.bring_api.purchase_item(item.summary)
-        bring_item = BringTodoItem(self.coordinator.bring_api, item.summary, self.uuid)
+        item_summary = item.summary
+        item_specification = None
+        if ":" in item.summary:
+            split = item.summary.split(":")
+            item_summary = split[0]
+            item_specification = split[1]
+        _LOGGER.debug(f"Creating new item with Summary: {item_summary}  Specification:{item_specification}")
+        await self.coordinator.bring_api.purchase_item(item_summary, item_specification)
+        bring_item = BringTodoItem(self.coordinator.bring_api, item_summary, self.uuid)
+        if item_specification:
+            bring_item.set_specification(item_specification)
         self._items.append(bring_item)
-        self._processed_items.append(item.summary)
+        self._processed_items.append(bring_item.get_summary())
         await self.coordinator.async_request_refresh()
 
     # Note: This removes it from the API, and lets the List state remove it from the lst
@@ -127,12 +150,14 @@ class BringTodoList(CoordinatorEntity, TodoListEntity):
             for item in self._items:
                 item_uid = item.get_uid()
                 if item_uid == uid:
-                    item_name = item.get_summary()
+                    item_summary = item.get_summary()
+                    item_specification = item.get_specification()
                     break
             await self.coordinator.bring_api.set_list_by_uuid(self.uuid)
-            await self.coordinator.bring_api.remove_item(item_name)
+            await self.coordinator.bring_api.remove_item(item_summary, item_specification)
             await self.coordinator.async_request_refresh()
-            self.remove_outdated_list_items()
+        _LOGGER.debug("Syncing removed items")
+        await self.async_remove_outdated_list_items()
 
     async def async_update_todo_item(self, item: TodoItem) -> None:
         _LOGGER.debug(f"Updating item {item.summary}")
@@ -150,7 +175,8 @@ class BringTodoList(CoordinatorEntity, TodoListEntity):
 
 class BringTodoItem(TodoItem):
     def __init__(self, api, summary, list_uuid):
-        self.summary = summary
+        self._summary = summary
+        self.specification = None
         self.status = TodoItemStatus.NEEDS_ACTION
         self.bring_api = api
         self.list_uuid = list_uuid
@@ -159,8 +185,18 @@ class BringTodoItem(TodoItem):
     def uid(self):
         return f"{self.list_uuid}_item_{self.summary.replace(' ', '_')}"
 
+    @property
+    def summary(self):
+        return f"{self._summary}:{self.specification}" if self.specification else self._summary
+
     def set_summary(self, summary):
-        self.summary = summary
+        self._summary = summary
+
+    def set_specification(self, specification):
+        self.specification = specification
+
+    def get_specification(self):
+        return self.specification
 
     def set_status(self, status):
         self.status = status
@@ -169,7 +205,7 @@ class BringTodoItem(TodoItem):
         return self.uid
 
     def get_summary(self):
-        return self.summary
+        return self._summary
 
     def update_local_status(self):
         if self.status == TodoItemStatus.NEEDS_ACTION:
@@ -179,14 +215,14 @@ class BringTodoItem(TodoItem):
 
     async def update_status(self):
         if self.status == TodoItemStatus.NEEDS_ACTION:
-            await self.bring_api.recent_item(self.summary)
+            await self.bring_api.recent_item(self._summary, self.specification)
             self.status = TodoItemStatus.COMPLETED
         elif self.status == TodoItemStatus.COMPLETED:
             self.status = TodoItemStatus.NEEDS_ACTION
-            await self.bring_api.purchase_item(self.summary)
+            await self.bring_api.purchase_item(self._summary, self.specification)
 
     async def purchase_item(self):
-        self.bring_api.purchase_item(self.summary)
+        self.bring_api.purchase_item(self._summary, self.specification)
 
     @property
     def state(self):
