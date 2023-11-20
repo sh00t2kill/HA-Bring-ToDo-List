@@ -1,10 +1,12 @@
 {
   "domain": "bring",
   "name": "Bring Todo List",
-  "documentation": "https://github.com/sh00t2kill/HA-Bring-ToDo-List",
-  "dependencies": ["http"],
-  "codeowners": [],
+  "codeowners": ["@sh00t2kill"],
   "config_flow": true,
+  "dependencies": ["http"],
+  "documentation": "https://github.com/sh00t2kill/HA-Bring-ToDo-List",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/sh00t2kill/HA-Bring-ToDo-List/issues",  
   "quality_scale": "internal",
-  "version": "0.7"
+  "version": "1.3.0"
 }
