@@ -172,11 +172,13 @@ class BringTodoList(CoordinatorEntity, TodoListEntity):
     async def async_update_todo_item(self, item: TodoItem) -> None:
         _LOGGER.debug(f"Updating item {item.summary}")
         await self.coordinator.bring_api.set_list_by_uuid(self.uuid)
+        update_data = True
         search_bring_item = BringTodoItem(self.coordinator.bring_api, item.summary, self.uuid)
         if search_bring_item not in self._items:
             #Its been marked as completed, so lets update the status
             search_bring_item.set_status(TodoItemStatus.COMPLETED)
         if search_bring_item not in self._items:
+            update_data = False
             _LOGGER.debug(f"{item} has been changed, sync changes to Bring!")
             # The item has changed its name -- we need to deal with this!
             found_item_key = self.find_item_position_by_uid(item.uid)
@@ -197,7 +199,8 @@ class BringTodoList(CoordinatorEntity, TodoListEntity):
             item_key = self._items.index(search_bring_item)
             bring_item = self._items[item_key]
             await bring_item.update_status()
-        await self.coordinator.async_request_refresh()
+        if update_data:
+            await self.coordinator.async_request_refresh()
 
 
 
