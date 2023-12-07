@@ -187,6 +187,7 @@ class BringTodoList(CoordinatorEntity, TodoListEntity):
             found_item_summary = found_item.get_summary()
             found_item_specification = found_item.get_specification()
             self._items[found_item_key].set_summary(item.summary)
+            self._processed_items[found_item_key] = item.summary
             _LOGGER.debug(f"Removing old item {found_item_summary} from Bring!")
             await self.coordinator.bring_api.remove_item(found_item_summary, found_item_specification)
             if item.status == TodoItemStatus.NEEDS_ACTION:
