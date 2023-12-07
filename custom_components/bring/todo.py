@@ -26,6 +26,9 @@ async def async_setup_entry(
 
     async_add_entities(entities, True)
 
+    platform = entity_platform.async_get_current_platform()
+    platform.async_register_entity_service("update", {}, "_update")
+
 class BringTodoList(CoordinatorEntity, TodoListEntity):
     def __init__(self, coordinator, list_uuid, list_name):
         super().__init__(coordinator)
@@ -171,6 +174,8 @@ class BringTodoList(CoordinatorEntity, TodoListEntity):
         await bring_item.update_status()
         await self.coordinator.async_request_refresh()
 
+    async def _update(self):
+        await self.coordinator.async_request_refresh()
 
 
 class BringTodoItem(TodoItem):
