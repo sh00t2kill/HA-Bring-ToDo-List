@@ -215,7 +215,7 @@ class BringTodoItem(TodoItem):
 
     @property
     def summary(self):
-        return f"{self._summary}-{self.specification}" if self.specification else self._summary
+        return f"{self._summary}:{self.specification}" if self.specification else self._summary
 
     def set_summary(self, summary):
         self._summary = summary
