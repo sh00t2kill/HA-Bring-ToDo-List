@@ -78,8 +78,15 @@ class BringTodoList(CoordinatorEntity, TodoListEntity):
             elif item['name'] in self._processed_items and bring_item not in self._items:
                 _LOGGER.debug("Existing item found, changing status to NEEDS_ACTION")
                 bring_item.set_status(TodoItemStatus.COMPLETED)
-                item_key = self._items.index(bring_item)
-                self._items[item_key].set_status(TodoItemStatus.NEEDS_ACTION)
+                try:
+                    item_key = self._items.index(bring_item)
+                    self._items[item_key].set_status(TodoItemStatus.NEEDS_ACTION)
+                except ValueError:
+                    _LOGGER.debug(f"The item {bring_item.get_summary()} has had a specification {item['specification']} added in Bring")
+                    bring_item.set_specification("")
+                    bring_item.set_status(TodoItemStatus.NEEDS_ACTION)
+                    item_key = self._items.index(bring_item)
+                    self._items[item_key].set_specification(item["specification"])
         for item in all_items["recently"]:
             bring_item = BringTodoItem(self.coordinator.bring_api, item["name"], self.uuid)
             bring_item.set_status(TodoItemStatus.COMPLETED)
