@@ -3,6 +3,7 @@ import logging
 import uuid
 
 from homeassistant.components.todo import TodoListEntity, TodoItem, TodoItemStatus, TodoListEntityFeature
+from homeassistant.helpers import entity_platform
 from homeassistant.helpers.update_coordinator import (CoordinatorEntity,
                                                       DataUpdateCoordinator)
 from homeassistant.util import slugify
@@ -25,6 +26,9 @@ async def async_setup_entry(
         entities.append(BringTodoList(coordinator, list_uuid, list_name))
 
     async_add_entities(entities, True)
+
+    platform = entity_platform.async_get_current_platform()
+    platform.async_register_entity_service("force_bring_sync", {}, "_force_sync")
 
 class BringTodoList(CoordinatorEntity, TodoListEntity):
     def __init__(self, coordinator, list_uuid, list_name):
@@ -210,6 +214,9 @@ class BringTodoList(CoordinatorEntity, TodoListEntity):
         if update_data:
             await self.coordinator.async_request_refresh()
 
+    async def _force_sync(self):
+        _LOGGER.debug("Forcing update due to service call")
+        await self.coordinator.async_request_refresh()
 
 
 class BringTodoItem(TodoItem):

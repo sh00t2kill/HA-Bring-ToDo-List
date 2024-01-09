@@ -1,0 +1,7 @@
+force_bring_sync:
+  name: Update List Items
+  description: Force a connection to the API to refresh the item lists
+  target:
+    entity:
+      integration: bring
+      domain: todo
