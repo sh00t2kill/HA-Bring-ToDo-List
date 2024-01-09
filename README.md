@@ -20,3 +20,14 @@ Add the `Bring Todo List` integration from the HA Integrations page, and enter y
 <br>If you are unsure as to what to put here, you can test at this public URL: https://web.getbring.com/locale/articles.<<LOCALE_STRING_GOES_HERE>.json
 <br>Example: Italian: https://web.getbring.com/locale/articles.it-IT.json -- the locale value should be it-IT
 
+
+## Force Sync
+A service exists to force a sync between HA, called `bring.force_bring_sync`
+It requires a todo entity, but will sync ALL todo entities with Bring lists.
+
+```
+service: bring.force_bring_sync
+data: {}
+target:
+  entity_id: todo.bring_todo_home
+```
