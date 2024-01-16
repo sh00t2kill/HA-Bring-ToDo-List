@@ -1,0 +1,16 @@
+{
+    "title": "Bring! ToDo List",
+    "config": {
+        "step": {
+            "user": {
+                "title": "Bring! ToDo List",
+                "data": {
+                    "Username": "Username",
+                    "Password": "Password",
+                    "Locale": "Locale"
+                },
+                "description": "Please enter the username/password used for Bring!."
+            }
+        }
+    }
+}
